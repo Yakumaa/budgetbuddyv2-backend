@@ -8,18 +8,23 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-model User {
-  user_id      Int           @id @default(autoincrement())
-  username     String
-  email        String        @unique
-  password     String
-  created_at   DateTime      @default(now())
-  updated_at   DateTime      @updatedAt
-  accounts     Account[]
-  assets       Asset[]
-  loans        Loan[]
-  reminders    Reminder[]
+model Users {
+  id                                     Int                     @id @default(autoincrement())
+  createdAt                              DateTime                @default(now())
+  updatedAt                              DateTime                @updatedAt
+  email                                  String                  @unique
+  username                               String                  @unique
+  hash                                   String
+  role                                   Role                    @default(USER)
+  hashedRt                               String?
+
   transactions Transaction[]
+  accounts    Account[]
+  loans       Loan[]
+  assets      Asset[]
+  reminders   Reminder[]
+
+  @@map("users")
 }
 
 model Transaction {
@@ -32,7 +37,7 @@ model Transaction {
   date           DateTime
   created_at     DateTime        @default(now())
   updated_at     DateTime        @updatedAt
-  user           User            @relation(fields: [user_id], references: [user_id])
+  user           Users           @relation(fields: [user_id], references: [id])
 }
 
 model Account {
@@ -42,7 +47,7 @@ model Account {
   balance    Float
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
-  user       User     @relation(fields: [user_id], references: [user_id])
+  user       Users    @relation(fields: [user_id], references: [id])
 }
 
 model Loan {
@@ -57,7 +62,7 @@ model Loan {
   end_date           DateTime
   created_at         DateTime @default(now())
   updated_at         DateTime @updatedAt
-  user               User     @relation(fields: [user_id], references: [user_id])
+  user               Users    @relation(fields: [user_id], references: [id])
 }
 
 model Asset {
@@ -69,7 +74,7 @@ model Asset {
   description   String?
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
-  user          User     @relation(fields: [user_id], references: [user_id])
+  user          Users    @relation(fields: [user_id], references: [id])
 }
 
 model Reminder {
@@ -79,7 +84,13 @@ model Reminder {
   date        DateTime
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
-  user        User     @relation(fields: [user_id], references: [user_id])
+  user        Users    @relation(fields: [user_id], references: [id])
+}
+
+enum Role {
+  ADMIN
+  EDITOR
+  USER
 }
 
 enum TransactionType {
