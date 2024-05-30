@@ -5,6 +5,11 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { AtGuard } from './auth/guard';
 import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
+import { TransactionsModule } from './transactions/transactions.module';
+import { AccountsModule } from './accounts/accounts.module';
+import { LoansModule } from './loans/loans.module';
+import { AssetsModule } from './assets/assets.module';
 
 @Module({
   imports: [AuthModule, ConfigModule.forRoot({ isGlobal: true }), PrismaModule,
@@ -25,6 +30,11 @@ import { AuthModule } from './auth/auth.module';
         limit: 100,
       },
     ]),
+    UsersModule,
+    TransactionsModule,
+    AccountsModule,
+    LoansModule,
+    AssetsModule,
   ],
   providers: [
     {
