@@ -3,7 +3,7 @@ import { TransactionType } from '@prisma/client';
 
 export class CreateTransactionDto {
   //TODO: add account from accountTransaction
-  
+
   @IsEnum(TransactionType)
   @IsNotEmpty()
   type: TransactionType;
@@ -12,6 +12,7 @@ export class CreateTransactionDto {
   @IsNotEmpty()
   amount: number;
 
+  //TODO: add pre made categories and option to add more categories
   @IsString()
   @IsNotEmpty()
   @MaxLength(50)

@@ -8,7 +8,7 @@ import { AtGuard } from '../auth/guard';
 export class TransactionsController {
   constructor(private transactionsService: TransactionsService) {}
 
-  @UseGuards(AtGuard)
+  @UseGuards(AtGuard) //TODO: try this globally
   @Post()
   async createTransaction(
     @GetCurrentUserId() userId: number,

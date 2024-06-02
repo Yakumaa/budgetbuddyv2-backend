@@ -47,6 +47,7 @@ model Account {
   user_id      Int
   name         String
   balance      Float
+  category     AccountCategory
   created_at   DateTime @default(now())
   updated_at   DateTime @updatedAt
   user         Users    @relation(fields: [user_id], references: [id])
@@ -125,6 +126,12 @@ enum Role {
 enum TransactionType {
   expense
   income
+}
+
+enum AccountCategory {
+  CASH
+  BANK
+  MOBILE_WALLET
 }
 
 enum LoanType {
