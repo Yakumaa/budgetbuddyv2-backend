@@ -38,16 +38,21 @@ model Transaction {
   created_at     DateTime        @default(now())
   updated_at     DateTime        @updatedAt
   user           Users           @relation(fields: [user_id], references: [id])
+
+  accounts       AccountTransaction[]
 }
 
 model Account {
-  account_id Int      @id @default(autoincrement())
-  user_id    Int
-  name       String
-  balance    Float
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  user       Users    @relation(fields: [user_id], references: [id])
+  account_id   Int      @id @default(autoincrement())
+  user_id      Int
+  name         String
+  balance      Float
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+  user         Users    @relation(fields: [user_id], references: [id])
+
+  transactions AccountTransaction[]
+  loans        LoanAccount[]
 }
 
 model Loan {
@@ -63,6 +68,8 @@ model Loan {
   created_at         DateTime @default(now())
   updated_at         DateTime @updatedAt
   user               Users    @relation(fields: [user_id], references: [id])
+
+  accounts           LoanAccount[]
 }
 
 model Asset {
@@ -75,6 +82,28 @@ model Asset {
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
   user          Users    @relation(fields: [user_id], references: [id])
+}
+
+model AccountTransaction {
+  transaction_id Int
+  account_id     Int
+  amount         Float
+
+  transaction    Transaction @relation(fields: [transaction_id], references: [transaction_id])
+  account        Account     @relation(fields: [account_id], references: [account_id])
+
+  @@id([transaction_id, account_id])
+}
+
+model LoanAccount {
+  loan_id     Int
+  account_id  Int
+  amount      Float
+
+  loan        Loan     @relation(fields: [loan_id], references: [loan_id])
+  account     Account  @relation(fields: [account_id], references: [account_id])
+
+  @@id([loan_id, account_id])
 }
 
 model Reminder {
