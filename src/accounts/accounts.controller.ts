@@ -47,8 +47,8 @@ export class AccountsController {
     await this.accountsService.transferBalance(userId, transferBalanceDto);
   }
 
-  @Get('total-balance')
-  async getTotalBalance(@GetCurrentUserId() userId: number) {
-    return this.accountsService.getTotalBalance(userId);
+  @Get('total-balance/:id')
+  async getTotalBalanceById(@Param('id') userId: string) {
+    return this.accountsService.getTotalBalanceById(+userId);
   }
 }

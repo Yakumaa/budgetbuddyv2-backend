@@ -24,16 +24,22 @@ export class AccountsService {
     console.log('Created account:', account); // Log created account
     return account;
   }
-
-  async getAccounts(userId: number): Promise<{ accounts: Account[]; totalBalance: number }> {
+  async getAccounts(userId: number): Promise<{ userId: number; accounts: Account[]; totalBalance: number }> {
     const accounts = await this.prisma.account.findMany({
       where: { user_id: userId },
     });
     console.log('Retrieved accounts:', accounts); // Log retrieved accounts
   
-    const totalBalance = await this.getTotalBalance(userId);
+    const { _sum } = await this.prisma.account.aggregate({
+      where: { user_id: userId },
+      _sum: {
+        balance: true,
+      },
+    });
   
-    return { accounts, totalBalance };
+    const totalBalance = _sum.balance || 0;
+  
+    return { userId, accounts, totalBalance };
   }
 
   async getAccountById(account_id: number): Promise<Account> {
@@ -99,7 +105,7 @@ export class AccountsService {
     console.log('Balance transferred successfully'); // Log success
   }
 
-  async getTotalBalance(userId: number): Promise<number> {
+  async getTotalBalanceById(userId: number): Promise<{ userId: number; totalBalance: number }> {
     const { _sum } = await this.prisma.account.aggregate({
       where: { user_id: userId },
       _sum: {
@@ -107,7 +113,9 @@ export class AccountsService {
       },
     });
   
-    return _sum.balance || 0;
+    const totalBalance = _sum.balance || 0;
+  
+    return { userId, totalBalance };
   }
     
 }
