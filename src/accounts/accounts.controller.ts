@@ -19,8 +19,8 @@ export class AccountsController {
   }
 
   @Get()
-  async getAccounts() {
-    return this.accountsService.getAccounts();
+  async getAccounts(@GetCurrentUserId() userId: number) {
+    return this.accountsService.getAccounts(userId);
   }
 
   @Get(':id')
@@ -45,5 +45,10 @@ export class AccountsController {
     @Body() transferBalanceDto: TransferBalanceDto) {
     console.log('transferBalanceDto:', transferBalanceDto); // Log incoming DTO
     await this.accountsService.transferBalance(userId, transferBalanceDto);
+  }
+
+  @Get('total-balance')
+  async getTotalBalance(@GetCurrentUserId() userId: number) {
+    return this.accountsService.getTotalBalance(userId);
   }
 }
