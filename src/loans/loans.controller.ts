@@ -1,32 +1,41 @@
-import { Body, Controller, Get, Param, Post, Put, Delete } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Delete, UseGuards } from '@nestjs/common';
 import { LoansService } from './loans.service';
+import { CreateLoanDto, UpdateLoanDto } from './dto';
+import { GetCurrentUserId } from '../auth/decorator';
+import { AtGuard } from '../auth/guard/at.guard';
 
 @Controller('loans')
+@UseGuards(AtGuard)
 export class LoansController {
-  constructor(private readonly loansService: LoansService) {}
+  constructor(private loansService: LoansService) {}
 
   @Post()
-  async createLoan(@Body() data: any) {
-    return this.loansService.createLoan(data);
+  async createLoan(
+    @GetCurrentUserId() userId: number,
+    @Body() createLoanDto: CreateLoanDto
+  ) {
+    console.log('createLoanDto:', createLoanDto); // Log incoming DTO
+    return this.loansService.createLoan(userId, createLoanDto);
   }
 
   @Get()
-  async getLoans(@Param('userId') userId: number) {
+  async getLoans(@GetCurrentUserId() userId: number){
     return this.loansService.getLoans(userId);
   }
 
   @Get(':id')
-  async getLoanById(@Param('id') id: number) {
-    return this.loansService.getLoanById(id);
+  async getLoanById(@Param('id') id: string) {
+    return this.loansService.getLoanById(+id);
   }
 
   @Put(':id')
-  async updateLoan(@Param('id') id: number, @Body() data: any) {
-    return this.loansService.updateLoan(id, data);
+  async updateLoan(@Param('id') id: string, @Body() updateLoanDto: UpdateLoanDto) {
+    console.log('updateLoanDto:', updateLoanDto); // Log incoming DTO
+    return this.loansService.updateLoan(+id, updateLoanDto);
   }
 
   @Delete(':id')
-  async deleteLoan(@Param('id') id: number) {
-    return this.loansService.deleteLoan(id);
+  async deleteLoan(@Param('id') id: string) {
+    return this.loansService.deleteLoan(+id);
   }
 }

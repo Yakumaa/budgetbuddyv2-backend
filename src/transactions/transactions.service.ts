@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTransactionDto, UpdateTransactionDto } from './dto';
 import { Transaction, Prisma } from '@prisma/client';
@@ -67,12 +67,50 @@ export class TransactionsService {
 
   async updateTransaction(transaction_id: number, data: UpdateTransactionDto): Promise<Transaction> {
     console.log('updateTransaction data:', data); // Log incoming data
-    const transaction = await this.prisma.transaction.update({
+  
+    // Retrieve the existing transaction
+    const existingTransaction = await this.prisma.transaction.findUnique({
       where: { transaction_id },
-      data,
+      include: { accounts: true },
     });
-    console.log('Updated transaction:', transaction); // Log updated transaction
-    return transaction;
+  
+    if (!existingTransaction) {
+      throw new NotFoundException('Transaction not found');
+    }
+  
+    // Calculate the balance difference
+    const balanceDiff = data.amount - existingTransaction.amount;
+  
+    // Update the transaction
+    const updatedTransaction = await this.prisma.transaction.update({
+      where: { transaction_id },
+      data: {
+        ...data,
+        accounts: {
+          updateMany: {
+            where: { transaction_id },
+            data: { amount: data.amount },
+          },
+        },
+      },
+    });
+  
+    // Update the account balances
+    await Promise.all(
+      existingTransaction.accounts.map(async (accountTransaction) => {
+        await this.prisma.account.update({
+          where: { account_id: accountTransaction.account_id },
+          data: {
+            balance: {
+              increment: existingTransaction.type === 'income' ? balanceDiff : -balanceDiff,
+            },
+          },
+        });
+      }),
+    );
+  
+    console.log('Updated transaction:', updatedTransaction); // Log updated transaction
+    return updatedTransaction;
   }
 
   async deleteTransaction(transaction_id: number): Promise<Transaction> {
