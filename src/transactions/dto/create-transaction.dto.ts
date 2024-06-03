@@ -1,12 +1,12 @@
-import { IsInt, IsDateString, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsInt, IsDateString, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator';
 import { TransactionType } from '@prisma/client';
+import { Type } from 'class-transformer';
+import { AccountTransactionDto } from './account-transaction.dto';
 
 export class CreateTransactionDto {
-  //TODO: add account from accountTransaction
-
   @IsEnum(TransactionType)
   @IsNotEmpty()
-  type: TransactionType;
+  type: TransactionType; //income / expense
 
   @IsNumber()
   @IsNotEmpty()
@@ -26,5 +26,10 @@ export class CreateTransactionDto {
   @IsDateString()
   @IsNotEmpty()
   date: string;
+
+  @IsNotEmpty()
+  @ValidateNested({ each: true })
+  @Type(() => AccountTransactionDto)
+  account_transactions: AccountTransactionDto[];
 }
 

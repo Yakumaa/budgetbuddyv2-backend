@@ -9,20 +9,44 @@ export class TransactionsService {
 
   async createTransaction(userId: number, data: CreateTransactionDto): Promise<Transaction> {
     console.log('createTransaction data:', data); // Log incoming data
+    const { account_transactions, ...transactionData } = data;
+
     const transaction = await this.prisma.transaction.create({
       data: {
+        ...transactionData,
         user: {
           connect: {
             id: userId,
           },
         },
-        type: data.type,
-        amount: data.amount,
-        category: data.category,
-        description: data.description,
-        date: data.date,
+        accounts: {
+          create: account_transactions.map((accountTransaction) => ({
+            account: {
+              connect: {
+                account_id: accountTransaction.account_id,
+              },
+            },
+            amount: data.amount,
+          })),
+        },
       },
     });
+
+    await Promise.all(
+      account_transactions.map(async (accountTransaction) => {
+        await this.prisma.account.update({
+          where: {
+            account_id: accountTransaction.account_id,
+          },
+          data: {
+            balance: {
+              increment: data.type === 'income' ? data.amount : -data.amount,
+            },
+          },
+        });
+      }),
+    );
+
     console.log('Created transaction:', transaction); // Log created transaction
     return transaction;
   }
