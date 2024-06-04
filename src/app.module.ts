@@ -10,6 +10,7 @@ import { TransactionsModule } from './transactions/transactions.module';
 import { AccountsModule } from './accounts/accounts.module';
 import { LoansModule } from './loans/loans.module';
 import { AssetsModule } from './assets/assets.module';
+import { RemindersModule } from './reminders/reminders.module';
 
 @Module({
   imports: [AuthModule, ConfigModule.forRoot({ isGlobal: true }), PrismaModule,
@@ -35,6 +36,7 @@ import { AssetsModule } from './assets/assets.module';
     AccountsModule,
     LoansModule,
     AssetsModule,
+    RemindersModule,
   ],
   providers: [
     {
