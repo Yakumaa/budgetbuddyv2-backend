@@ -23,9 +23,9 @@ export class TransactionsController {
     return this.transactionsService.getTransactions();
   }
 
-  @Get(':id')
-  async getTransactionById(@Param('id') id: string) {
-    return this.transactionsService.getTransactionById(+id);
+  @Get('transaction/:id')
+  async getTransactionById(@Param('id') id: string, @GetCurrentUserId() userId: number){
+    return this.transactionsService.getTransactionById(+id, userId);
   }
 
   @Put(':id')
@@ -37,5 +37,15 @@ export class TransactionsController {
   @Delete(':id')
   async deleteTransaction(@Param('id') id: string) {
     return this.transactionsService.deleteTransaction(+id);
+  }
+
+  @Get('total-income')
+  async getTotalIncome(@GetCurrentUserId() userId: string){
+    return this.transactionsService.getTotalIncome(+userId);
+  }
+
+  @Get('total-expense')
+  async getTotalExpense(@GetCurrentUserId() userId: string){
+    return this.transactionsService.getTotalExpense(+userId);
   }
 }

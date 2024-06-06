@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTransactionDto, UpdateTransactionDto } from './dto';
-import { Transaction, Prisma } from '@prisma/client';
+import { Transaction, Prisma, TransactionType } from '@prisma/client';
 
 @Injectable()
 export class TransactionsService {
@@ -57,9 +57,9 @@ export class TransactionsService {
     return transactions;
   }
 
-  async getTransactionById(transaction_id: number): Promise<Transaction> {
+  async getTransactionById(transaction_id: number, user_id: number): Promise<Transaction | null> {
     const transaction = await this.prisma.transaction.findUnique({
-      where: { transaction_id },
+      where: { transaction_id, user_id: user_id },
     });
     console.log('Retrieved transaction:', transaction); // Log retrieved transaction
     return transaction;
@@ -119,5 +119,35 @@ export class TransactionsService {
     });
     console.log('Deleted transaction:', transaction); // Log deleted transaction
     return transaction;
+  }
+  
+  async getTotalIncome(userId: number): Promise<number> {
+    const { _sum } = await this.prisma.transaction.aggregate({
+      where: {
+        user_id: userId,
+        type: TransactionType.income,
+      },
+      _sum: {
+        amount: true,
+      },
+    });
+    const totalIncome = _sum.amount || 0;
+    console.log('Total income:', totalIncome);
+    return totalIncome;
+  }
+
+  async getTotalExpense(userId: number): Promise<number> {
+    const { _sum } = await this.prisma.transaction.aggregate({
+      where: {
+        user_id: userId,
+        type: TransactionType.expense,
+      },
+      _sum: {
+        amount: true,
+      },
+    });
+    const totalExpense = _sum.amount || 0;
+    console.log('Total expense:', totalExpense);
+    return totalExpense;
   }
 }
