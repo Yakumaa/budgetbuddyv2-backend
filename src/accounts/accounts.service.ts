@@ -42,9 +42,9 @@ export class AccountsService {
     return { userId, accounts, totalBalance };
   }
 
-  async getAccountById(account_id: number): Promise<Account> {
+  async getAccountById(account_id: number, user_id: number): Promise<Account> {
     const account = await this.prisma.account.findUnique({
-      where: { account_id },
+      where: { account_id, user_id: user_id},
     });
     console.log('Retrieved account:', account); // Log retrieved account
     return account;
@@ -105,7 +105,7 @@ export class AccountsService {
     console.log('Balance transferred successfully'); // Log success
   }
 
-  async getTotalBalanceById(userId: number): Promise<{ userId: number; totalBalance: number }> {
+  async getTotalBalance(userId: number): Promise<number> {
     const { _sum } = await this.prisma.account.aggregate({
       where: { user_id: userId },
       _sum: {
@@ -115,7 +115,15 @@ export class AccountsService {
   
     const totalBalance = _sum.balance || 0;
   
-    return { userId, totalBalance };
+    return totalBalance;
+  }
+
+  async getTotalAccounts(userId: number): Promise<number> {
+    const totalAccounts = await this.prisma.account.count({
+      where: { user_id: userId },
+    });
+    
+    return totalAccounts;
   }
     
 }

@@ -23,9 +23,9 @@ export class AccountsController {
     return this.accountsService.getAccounts(userId);
   }
 
-  @Get(':id')
-  async getAccountById(@Param('id') id: string) {
-    return this.accountsService.getAccountById(+id);
+  @Get('account/:id')
+  async getAccountById(@Param('id') id: string, @GetCurrentUserId() userId: number){
+    return this.accountsService.getAccountById(+id, userId);
   }
 
   @Put(':id')
@@ -47,8 +47,13 @@ export class AccountsController {
     await this.accountsService.transferBalance(userId, transferBalanceDto);
   }
 
-  @Get('total-balance/:id')
-  async getTotalBalanceById(@Param('id') userId: string) {
-    return this.accountsService.getTotalBalanceById(+userId);
+  @Get('total-balance')
+  async getTotalBalance(@GetCurrentUserId() userId: string) {
+    return this.accountsService.getTotalBalance(+userId);
+  }
+
+  @Get('total-accounts')
+  async getTotalAccounts(@GetCurrentUserId() userId: string){
+    return this.accountsService.getTotalAccounts(+userId);
   }
 }
