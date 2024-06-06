@@ -72,9 +72,9 @@ export class LoansService {
     return loans;
   }
 
-  async getLoanById(loanId: number): Promise<Loan> {
+  async getLoanById(loanId: number, user_id: number): Promise<Loan> {
     const loan = await this.prisma.loan.findUnique({
-      where: { loan_id: loanId },
+      where: { loan_id: loanId, user_id: user_id},
     });
     console.log('Retrieved loan:', loan); // Log retrieved loan
     return loan;
@@ -170,5 +170,35 @@ export class LoansService {
   
     console.log('Deleted loan:', deletedLoan); // Log deleted loan
     return deletedLoan;
+  }
+
+  async getTotalLending(userId: number): Promise<number> {
+    const { _sum } = await this.prisma.loan.aggregate({
+      where: {
+        user_id: userId,
+        loanType: LoanType.lend,
+      },
+      _sum: {
+        amount: true,
+      },
+    });
+    const totalLending = _sum.amount || 0;
+    console.log('Total lending:', totalLending); // Log total lending
+    return totalLending;
+  }
+
+  async getTotalBorrowing(userId: number): Promise<number> {
+    const { _sum } = await this.prisma.loan.aggregate({
+      where: {
+        user_id: userId,
+        loanType: LoanType.borrow,
+      },
+      _sum: {
+        amount: true,
+      },
+    });
+    const totalBorrowing = _sum.amount || 0;
+    console.log('Total borrowing:', totalBorrowing); // Log total borrowing
+    return totalBorrowing;
   }
 }

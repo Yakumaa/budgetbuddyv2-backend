@@ -23,9 +23,9 @@ export class LoansController {
     return this.loansService.getLoans(userId);
   }
 
-  @Get(':id')
-  async getLoanById(@Param('id') id: string) {
-    return this.loansService.getLoanById(+id);
+  @Get('loan/:id')
+  async getLoanById(@Param('id') id: string, @GetCurrentUserId() userId: number){
+    return this.loansService.getLoanById(+id, userId);
   }
 
   @Put(':id')
@@ -37,5 +37,15 @@ export class LoansController {
   @Delete(':id')
   async deleteLoan(@Param('id') id: string) {
     return this.loansService.deleteLoan(+id);
+  }
+
+  @Get('total-lending')
+  async getTotalLending(@GetCurrentUserId() userId: string){
+    return this.loansService.getTotalLending(+userId);
+  }
+
+  @Get('total-borrowing')
+  async getTotalBorrowing(@GetCurrentUserId() userId: string){
+    return this.loansService.getTotalBorrowing(+userId);
   }
 }
