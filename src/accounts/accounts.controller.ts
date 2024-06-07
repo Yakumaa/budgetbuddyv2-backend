@@ -44,7 +44,7 @@ export class AccountsController {
     @GetCurrentUserId() userId: number,
     @Body() transferBalanceDto: TransferBalanceDto) {
     console.log('transferBalanceDto:', transferBalanceDto); // Log incoming DTO
-    await this.accountsService.transferBalance(userId, transferBalanceDto);
+    return this.accountsService.transferBalance(userId, transferBalanceDto);
   }
 
   @Get('total-balance')

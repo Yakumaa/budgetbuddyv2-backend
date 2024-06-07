@@ -68,7 +68,7 @@ export class AccountsService {
     return account;
   }
 
-  async transferBalance(userId: number, data: TransferBalanceDto): Promise<void> {
+  async transferBalance(userId: number, data: TransferBalanceDto): Promise<{fromAccountId: number, toAccountId: number, amount: number}> {
     console.log('transferBalance data:', data); // Log incoming data
 
     const fromAccount = await this.prisma.account.findUnique({
@@ -103,6 +103,7 @@ export class AccountsService {
     ]);
 
     console.log('Balance transferred successfully'); // Log success
+    return data
   }
 
   async getTotalBalance(userId: number): Promise<number> {
