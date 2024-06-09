@@ -51,10 +51,12 @@ export class TransactionsService {
     return transaction;
   }
 
-  async getTransactions(): Promise<Transaction[]> {
-    const transactions = await this.prisma.transaction.findMany();
+  async getTransactions(userId: number): Promise<{ userId: number; transactions: Transaction[] }> {
+    const transactions = await this.prisma.transaction.findMany({
+      where: { user_id: userId },
+    });
     console.log('Retrieved transactions:', transactions); // Log retrieved transactions
-    return transactions;
+    return {userId, transactions};
   }
 
   async getTransactionById(transaction_id: number, user_id: number): Promise<Transaction | null> {

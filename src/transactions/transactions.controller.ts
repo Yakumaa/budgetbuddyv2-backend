@@ -19,8 +19,8 @@ export class TransactionsController {
   }
 
   @Get()
-  async getTransactions() {
-    return this.transactionsService.getTransactions();
+  async getTransactions(@GetCurrentUserId() userId: number) {
+    return this.transactionsService.getTransactions(userId);
   }
 
   @Get('transaction/:id')
