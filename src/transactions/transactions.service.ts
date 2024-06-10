@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTransactionDto, UpdateTransactionDto } from './dto';
 import { Transaction, Prisma, TransactionType } from '@prisma/client';
@@ -51,12 +51,35 @@ export class TransactionsService {
     return transaction;
   }
 
-  async getTransactions(userId: number): Promise<{ userId: number; transactions: Transaction[] }> {
+  async getTransactions(userId: number): Promise<{ userId: number; transactions: (Omit<Transaction, 'accounts'> & { account_id: number })[] }> {
     const transactions = await this.prisma.transaction.findMany({
       where: { user_id: userId },
+      include: {
+        accounts: {
+          select: {
+            account_id: true,
+          },
+          take: 1, // Ensure only one account is selected per transaction
+        },
+      },
     });
-    console.log('Retrieved transactions:', transactions); // Log retrieved transactions
-    return {userId, transactions};
+
+    // Map to include account_id as a single value and remove the accounts array
+    const transactionsWithAccount = transactions.map(transaction => ({
+      transaction_id: transaction.transaction_id,
+      user_id: transaction.user_id,
+      type: transaction.type,
+      amount: transaction.amount,
+      category: transaction.category,
+      description: transaction.description,
+      date: transaction.date,
+      created_at: transaction.created_at,
+      updated_at: transaction.updated_at,
+      account_id: transaction.accounts[0]?.account_id || null // Ensure there's an account_id
+    }));
+
+    console.log('Retrieved transactions with account_id:', transactionsWithAccount); // Log retrieved transactions
+    return { userId, transactions: transactionsWithAccount };
   }
 
   async getTransactionById(transaction_id: number, user_id: number): Promise<Transaction | null> {
@@ -116,11 +139,22 @@ export class TransactionsService {
   }
 
   async deleteTransaction(transaction_id: number): Promise<Transaction> {
-    const transaction = await this.prisma.transaction.delete({
+    // Check if the transaction exists
+    const transaction = await this.prisma.transaction.findUnique({
       where: { transaction_id },
     });
-    console.log('Deleted transaction:', transaction); // Log deleted transaction
-    return transaction;
+
+    if (!transaction) {
+      throw new BadRequestException('Transaction not found');
+    }
+
+    // Delete the transaction; cascading will delete related AccountTransaction entries
+    const deletedTransaction = await this.prisma.transaction.delete({
+      where: { transaction_id },
+    });
+
+    console.log('Deleted transaction:', deletedTransaction); // Log deleted transaction
+    return deletedTransaction;
   }
   
   async getTotalIncome(userId: number): Promise<number> {

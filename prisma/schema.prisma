@@ -90,7 +90,7 @@ model AccountTransaction {
   account_id     Int
   amount         Float
 
-  transaction    Transaction @relation(fields: [transaction_id], references: [transaction_id])
+  transaction    Transaction @relation(fields: [transaction_id], references: [transaction_id], onDelete: Cascade)
   account        Account     @relation(fields: [account_id], references: [account_id])
 
   @@id([transaction_id, account_id])
