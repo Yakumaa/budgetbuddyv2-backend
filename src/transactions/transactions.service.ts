@@ -138,14 +138,72 @@ export class TransactionsService {
     return updatedTransaction;
   }
 
+  // async deleteTransaction(transaction_id: number): Promise<Transaction> {
+  //   // Check if the transaction exists
+  //   const transaction = await this.prisma.transaction.findUnique({
+  //     where: { transaction_id },
+  //   });
+
+  //   if (!transaction) {
+  //     throw new BadRequestException('Transaction not found');
+  //   }
+
+  //   // Delete the transaction; cascading will delete related AccountTransaction entries
+  //   const deletedTransaction = await this.prisma.transaction.delete({
+  //     where: { transaction_id },
+  //   });
+
+  //   console.log('Deleted transaction:', deletedTransaction); // Log deleted transaction
+  //   return deletedTransaction;
+  // }
+
   async deleteTransaction(transaction_id: number): Promise<Transaction> {
-    // Check if the transaction exists
+    // Find the transaction to be deleted
     const transaction = await this.prisma.transaction.findUnique({
       where: { transaction_id },
+      include: {
+        accounts: {
+          select: {
+            account_id: true,
+            amount: true,
+          },
+        },
+      },
     });
 
     if (!transaction) {
       throw new BadRequestException('Transaction not found');
+    }
+
+    // Ensure there's only one associated account
+    const accountTransaction = transaction.accounts[0];
+    if (!accountTransaction) {
+      throw new BadRequestException('No associated account found for the transaction');
+    }
+
+    const accountId = accountTransaction.account_id;
+    const transactionAmount = transaction.amount;
+    const transactionType = transaction.type;
+
+    // Adjust the account balance
+    if (transactionType === TransactionType.income) {
+      await this.prisma.account.update({
+        where: { account_id: accountId },
+        data: {
+          balance: {
+            decrement: transactionAmount,
+          },
+        },
+      });
+    } else if (transactionType === TransactionType.expense) {
+      await this.prisma.account.update({
+        where: { account_id: accountId },
+        data: {
+          balance: {
+            increment: transactionAmount,
+          },
+        },
+      });
     }
 
     // Delete the transaction; cascading will delete related AccountTransaction entries
@@ -153,7 +211,7 @@ export class TransactionsService {
       where: { transaction_id },
     });
 
-    console.log('Deleted transaction:', deletedTransaction); // Log deleted transaction
+    console.log('Deleted transaction and updated account balance:', deletedTransaction); // Log deleted transaction and updated account
     return deletedTransaction;
   }
   
