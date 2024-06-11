@@ -138,25 +138,6 @@ export class TransactionsService {
     return updatedTransaction;
   }
 
-  // async deleteTransaction(transaction_id: number): Promise<Transaction> {
-  //   // Check if the transaction exists
-  //   const transaction = await this.prisma.transaction.findUnique({
-  //     where: { transaction_id },
-  //   });
-
-  //   if (!transaction) {
-  //     throw new BadRequestException('Transaction not found');
-  //   }
-
-  //   // Delete the transaction; cascading will delete related AccountTransaction entries
-  //   const deletedTransaction = await this.prisma.transaction.delete({
-  //     where: { transaction_id },
-  //   });
-
-  //   console.log('Deleted transaction:', deletedTransaction); // Log deleted transaction
-  //   return deletedTransaction;
-  // }
-
   async deleteTransaction(transaction_id: number): Promise<Transaction> {
     // Find the transaction to be deleted
     const transaction = await this.prisma.transaction.findUnique({
