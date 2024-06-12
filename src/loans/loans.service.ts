@@ -64,12 +64,37 @@ export class LoansService {
     return loan;
   }
 
-  async getLoans(userId: number): Promise<Loan[]> {
+  async getLoans(userId: number): Promise<(Omit<Loan, 'accounts'> & { account_id: number })[] > {
     const loans = await this.prisma.loan.findMany({
       where: { user_id: userId },
+      include: {
+        accounts: {
+          select: {
+            account_id: true,
+          },
+          take: 1, // Ensure only one account is selected per loan
+        },
+      },
     });
-    console.log('Retrieved loans:', loans); // Log retrieved loans
-    return loans;
+
+    //Map to include account_id as a single value and remove the accounts array
+    const loansWithAccount = loans.map((loan) => ({
+      loan_id: loan.loan_id,
+      user_id: loan.user_id,
+      amount: loan.amount,
+      loanType: loan.loanType,
+      counterpart: loan.counterpart,
+      interest_rate: loan.interest_rate,
+      repayment_schedule: loan.repayment_schedule,
+      start_date: loan.start_date,
+      end_date: loan.end_date,
+      created_at: loan.created_at,
+      updated_at: loan.updated_at,
+      account_id: loan.accounts[0]?.account_id || null, // Ensure there's an account_id or null
+    }));
+
+    console.log('Retrieved loans:', loansWithAccount); // Log retrieved loans
+    return loansWithAccount;
   }
 
   async getLoanById(loanId: number, user_id: number): Promise<Loan> {
