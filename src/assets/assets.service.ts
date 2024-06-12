@@ -34,9 +34,9 @@ export class AssetsService {
     return assets;
   }
 
-  async getAssetById(assetId: number): Promise<Asset> {
+  async getAssetById(assetId: number, user_id: number): Promise<Asset | null> {
     const asset = await this.prisma.asset.findUnique({
-      where: { asset_id: assetId },
+      where: { asset_id: assetId, user_id },
     });
     console.log('Retrieved asset:', asset); // Log retrieved asset
     return asset;
@@ -58,5 +58,14 @@ export class AssetsService {
     });
     console.log('Deleted asset:', asset); // Log deleted asset
     return asset;
+  }
+
+  async getTotalAsset(userId: number): Promise<number> {
+    const totalAsset = await this.prisma.asset.aggregate({
+      where: { user_id: userId },
+      _sum: { value: true },
+    });
+    console.log('Total asset:', totalAsset); // Log total asset
+    return totalAsset._sum.value || 0;
   }
 }

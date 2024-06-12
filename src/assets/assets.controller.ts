@@ -20,9 +20,9 @@ export class AssetsController {
     return this.assetsService.getAssets(userId);
   }
 
-  @Get(':id')
-  async getAssetById(@Param('id') id: string) {
-    return this.assetsService.getAssetById(+id);
+  @Get('asset/:id')
+  async getAssetById(@Param('id') id: string, @GetCurrentUserId() userId: number){
+    return this.assetsService.getAssetById(+id, userId);
   }
 
   @Put(':id')
@@ -34,5 +34,10 @@ export class AssetsController {
   @Delete(':id')
   async deleteAsset(@Param('id') id: string) {
     return this.assetsService.deleteAsset(+id);
+  }
+
+  @Get('total-asset')
+  async getTotalAsset(@GetCurrentUserId() userId: string){
+    return this.assetsService.getTotalAsset(+userId);
   }
 }
