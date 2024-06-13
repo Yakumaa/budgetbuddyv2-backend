@@ -159,6 +159,7 @@ export class AuthService {
       accessToken: at,
       refreshToken: rt,
       role,
+      userId,
     }
   }
 }

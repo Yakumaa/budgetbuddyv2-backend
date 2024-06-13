@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Users, Prisma } from '@prisma/client';
 import { UpdateUserDto, ChangePasswordDto, DeleteUserDto, UpdateUserRoleDto } from './dto';
 import * as bcrypt from 'bcrypt';
+import * as argon2 from 'argon2';
 
 @Injectable()
 export class UsersService {
@@ -12,52 +13,56 @@ export class UsersService {
     return this.prisma.users.findMany();
   }
 
-  //TODO: remove password from updateUser
-  async updateUser(userId: number, data: UpdateUserDto) {
-    console.log('updateUser data:', data); // Log incoming data
-    const { password, ...rest } = data;
+  async findUserById(userId: number): Promise<Users> {
+    return this.prisma.users.findUnique({ where: { id: userId } });
+  }
 
-    if (password) {
-      const hash = await bcrypt.hash(password, 10);
-      const updatedUser = await this.prisma.users.update({
-        where: { id: userId },
-        data: { ...rest, hash },
-      });
-      console.log('updatedUser with password:', updatedUser); // Log updated user
-      return updatedUser;
-    }
+  async updateUser(userId: number, data: UpdateUserDto) {
+    console.log('updateUser data:', data); 
 
     const updatedUser = await this.prisma.users.update({
       where: { id: userId },
-      data: rest,
+      data,
     });
-    console.log('updatedUser without password:', updatedUser); // Log updated user
+    console.log('updatedUser without password:', updatedUser); 
     return updatedUser;
   }
 
-  async changePassword(userId: number, data: ChangePasswordDto) {
-    console.log('changePassword data:', data); // Log incoming data
+  async changePassword(userId: number, data: ChangePasswordDto): Promise<any> {
+    try {
+      console.log('changePassword data:', data); 
 
-    const user = await this.prisma.users.findUnique({ where: { id: userId } });
-    console.log('current user data:', user); // Log current user data
+      const user = await this.prisma.users.findUnique({ where: { id: userId } });
+      console.log('current user data:', user); 
 
-    if (user && (await bcrypt.compare(data.currentPassword, user.hash))) {
-      console.log('Current password matches'); // Log password match
+      if (!user) {
+        console.error('User not found'); 
+        throw new BadRequestException('User not found');
+      }
 
-      const hash = await bcrypt.hash(data.newPassword, 10);
+      const passwordMatch = await argon2.verify(user.hash, data.currentPassword);
+      if (!passwordMatch) {
+        console.error('Current password is incorrect'); 
+        throw new BadRequestException('Current password is incorrect');
+      }
+
+      console.log('Current password matches'); 
+
+      const hash = await argon2.hash(data.newPassword);
       const updatedUser = await this.prisma.users.update({
         where: { id: userId },
         data: { hash },
       });
 
-      console.log('Password updated successfully:', updatedUser); // Log updated user
+      console.log('Password updated successfully:', updatedUser);
       return updatedUser;
+
+    } catch (error) {
+      console.error('Error changing password:', error);
+      throw new BadRequestException('Error changing password');
     }
-
-    console.error('Incorrect password'); // Log incorrect password
-    throw new Error('Incorrect password');
   }
-
+  
   async deleteUser(userId: number, data: DeleteUserDto) {
     const user = await this.prisma.users.findUnique({ where: { id: userId } });
     if (user && (await bcrypt.compare(data.password, user.hash))) {
@@ -67,14 +72,14 @@ export class UsersService {
   }
 
   async updateUserRole(userId: number, data: UpdateUserRoleDto) {
-    console.log('updateUserRole data:', data); // Log incoming data
+    console.log('updateUserRole data:', data); 
 
     const updatedUser = await this.prisma.users.update({
       where: { id: userId },
       data: { role: data.role },
     });
 
-    console.log('User role updated successfully:', updatedUser); // Log updated user
+    console.log('User role updated successfully:', updatedUser);
     return updatedUser;
   }
 }
