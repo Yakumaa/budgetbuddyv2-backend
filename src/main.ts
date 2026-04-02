@@ -10,7 +10,10 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule)
 
   const corsOptions: CorsOptions = {
-    origin: 'http://localhost:3000',
+    origin: [
+      'http://localhost:3000',
+      'https://budgetbuddy-coral.vercel.app'
+    ],
     optionsSuccessStatus: 200,
   }
   app.enableCors(corsOptions);
