@@ -6,13 +6,15 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
 import { JwtService } from '@nestjs/jwt'
 import { ConfigService } from '@nestjs/config'
 import { Tokens } from './types'
+import { AccountsService } from '../accounts/accounts.service'
 
 @Injectable()
 export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwt: JwtService,
-    private config: ConfigService
+    private config: ConfigService,
+    private accountsService: AccountsService,
   ) {}
 
   async signup(dto: RegisterDto) {
@@ -33,6 +35,11 @@ export class AuthService {
         user.username
       )
       await this.updateRefreshTokenHash(user.id, tokens.refreshToken)
+      const cashAccount = await this.accountsService.createAccount(user.id, {
+        name: 'Cash',
+        balance: 0,
+        category: 'CASH'  // from the AccountCategory enum
+      })
       return tokens
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {

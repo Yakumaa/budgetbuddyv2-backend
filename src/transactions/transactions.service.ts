@@ -9,7 +9,23 @@ export class TransactionsService {
 
   async createTransaction(userId: number, data: CreateTransactionDto): Promise<Transaction> {
     console.log('createTransaction data:', data); // Log incoming data
-    const { account_transactions, ...transactionData } = data;
+    let { account_transactions, ...transactionData } = data;
+
+    // If no account is specified, use the Cash account as default
+    if (!account_transactions || account_transactions.length === 0) {
+      const cashAccount = await this.prisma.account.findFirst({
+        where: {
+          user_id: userId,
+          category: 'CASH',
+        },
+      });
+
+      if (!cashAccount) {
+        throw new BadRequestException('Cash account not found. Please create a Cash account first.');
+      }
+
+      account_transactions = [{ account_id: cashAccount.account_id }];
+    }
 
     const transaction = await this.prisma.transaction.create({
       data: {
