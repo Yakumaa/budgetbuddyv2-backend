@@ -1,7 +1,7 @@
 import { ForbiddenException, Injectable } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
 import { AuthDto, RegisterDto } from './dto'
-import * as argon from 'argon2'
+import * as bcrypt from 'bcrypt'
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
 import { JwtService } from '@nestjs/jwt'
 import { ConfigService } from '@nestjs/config'
@@ -64,10 +64,9 @@ export class AuthService {
     }
 
     // compare password
-
-    const pwMatches = await argon.verify(user.hash, dto.password)
+    const pwMatches = await bcrypt.compare(dto.password, user.hash)
+    
     // if password incorrect throw exception
-
     if (!pwMatches) {
       throw new ForbiddenException('Credentials Incorrect')
     }
@@ -118,7 +117,7 @@ export class AuthService {
     if (!user || !user.hashedRt) {
       throw new ForbiddenException('Access Denied')
     }
-    const refreshTokenMatches = await argon.verify(user.hashedRt, rt)
+    const refreshTokenMatches = await bcrypt.compare(rt, user.hashedRt)
     if (!refreshTokenMatches) {
       throw new ForbiddenException('Access Denied')
     }
@@ -133,7 +132,7 @@ export class AuthService {
   }
 
   hashedData(data: string) {
-    return argon.hash(data)
+    return bcrypt.hash(data, 10)
   }
 
   async signToken(

@@ -3,7 +3,6 @@ import { PrismaService } from '../prisma/prisma.service';
 import { Users, Prisma } from '@prisma/client';
 import { UpdateUserDto, ChangePasswordDto, DeleteUserDto, UpdateUserRoleDto } from './dto';
 import * as bcrypt from 'bcrypt';
-import * as argon2 from 'argon2';
 
 @Injectable()
 export class UsersService {
@@ -40,7 +39,7 @@ export class UsersService {
         throw new BadRequestException('User not found');
       }
 
-      const passwordMatch = await argon2.verify(user.hash, data.currentPassword);
+      const passwordMatch = await bcrypt.compare(data.currentPassword, user.hash);
       if (!passwordMatch) {
         console.error('Current password is incorrect'); 
         throw new BadRequestException('Current password is incorrect');
@@ -48,7 +47,7 @@ export class UsersService {
 
       console.log('Current password matches'); 
 
-      const hash = await argon2.hash(data.newPassword);
+      const hash = await bcrypt.hash(data.newPassword, 10);
       const updatedUser = await this.prisma.users.update({
         where: { id: userId },
         data: { hash },
